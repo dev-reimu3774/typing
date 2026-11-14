@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>すらすらタイピング道場</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        rounded: ['"UD Digi Kyokasho NP-R"', '"UD Digi Kyokasho N-R"', '"M PLUS Rounded 1c"', '"BIZ UDPGothic"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: 読みやすいUD風丸ゴシック ＆ 等幅フォント -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=M+PLUS+Rounded+1c:wght@400;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "UD Digi Kyokasho NP-R", "UD Digi Kyokasho N-R", 'M PLUS Rounded 1c', 'BIZ UDPGothic', sans-serif;
+            user-select: none;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.96); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes pulseKeyLight {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(99, 102, 241, 0); }
+            50% { transform: scale(1.08); box-shadow: 0 0 16px rgba(99, 102, 241, 0.8); }
+        }
+        @keyframes pulseKeyDark {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(56, 189, 248, 0); }
+            50% { transform: scale(1.08); box-shadow: 0 0 18px rgba(56, 189, 248, 0.9); }
+        }
+        .key-highlight-light {
+            animation: pulseKeyLight 1.2s infinite ease-in-out;
+            background-color: #4f46e5 !important;
+            color: #ffffff !important;
+            border-color: #818cf8 !important;
+            z-index: 10;
+        }
+        .key-highlight-dark {
+            animation: pulseKeyDark 1.2s infinite ease-in-out;
+            background-color: #0ea5e9 !important;
+            color: #0f172a !important;
+            font-weight: 900 !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+            z-index: 10;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body id="app-body" class="min-h-screen flex flex-col justify-between bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+
+    <!-- ヘッダー -->
+    <header class="w-full py-5 px-6 md:px-10 flex items-center justify-between max-w-5xl mx-auto">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="returnToModeSelect()">
+            <div class="w-11 h-11 rounded-2xl bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
+                🥋
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-extrabold tracking-tight">
+                    すらすらタイピング道場
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400">全20問チャレンジ・マルチローマ字対応</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <div class="hidden sm:flex items-center space-x-2 text-xs font-bold bg-white dark:bg-slate-900 px-3.5 py-2 rounded-full shadow-sm border border-slate-200 dark:border-slate-800">
+                <span>モード: <span id="current-mode-label" class="text-indigo-600 dark:text-indigo-400">かんたん</span></span>
+            </div>
+            <!-- テーマ切り替えボタン -->
+            <button onclick="toggleTheme()" class="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 shadow-sm hover:scale-105 transition-all" aria-label="テーマ切替">
+                <span id="theme-icon">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow flex items-center justify-center px-4 py-4">
+        <div class="w-full max-w-3xl mx-auto">
+
+            <!-- 1. モード選択画面 -->
+            <div id="screen-mode" class="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-10 shadow-xl shadow-slate-200/60 dark:shadow-slate-900/40 border border-slate-200 dark:border-slate-800 text-center animate-pop">
+                <div class="inline-block px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-300 font-bold text-xs mb-3 border border-indigo-100 dark:border-indigo-900">
+                    全20問ステージ
+                </div>
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-2 text-slate-900 dark:text-slate-100">難易度を選択してください</h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-8 text-sm">文字数に合わせて好きなモードに挑戦しよう！（し/ち/つ等の複数入力に対応）</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 text-left">
+                    <!-- かんたん -->
+                    <button onclick="selectMode('easy')" class="group p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-400 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 transition-all duration-200 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">🌱</span>
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">3〜5文字</span>
+                            </div>
+                            <h3 class="font-bold text-lg mb-1 text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">かんたん</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">短い単語でまずは気軽にウォーミングアップ！</p>
+                        </div>
+                        <div class="mt-6 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center">
+                            挑戦する &rarr;
+                        </div>
+                    </button>
+
+                    <!-- ふつう -->
+                    <button onclick="selectMode('normal')" class="group p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-400 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 transition-all duration-200 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">🌿</span>
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300">6〜12文字</span>
+                            </div>
+                            <h3 class="font-bold text-lg mb-1 text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">ふつう</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">標準的な長さの単語やフレーズでリズムよく。</p>
+                        </div>
+                        <div class="mt-6 text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center">
+                            挑戦する &rarr;
+                        </div>
+                    </button>
+
+                    <!-- むずかしい -->
+                    <button onclick="selectMode('hard')" class="group p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-rose-500 dark:hover:border-rose-400 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-rose-50/40 dark:hover:bg-rose-950/30 transition-all duration-200 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">🔥</span>
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300">12〜36文字</span>
+                            </div>
+                            <h3 class="font-bold text-lg mb-1 text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400">むずかしい</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">長文や複雑なローマ字入力でスキルを極める！</p>
+                        </div>
+                        <div class="mt-6 text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center">
+                            挑戦する &rarr;
+                        </div>
+                    </button>
+                </div>
+
+                <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center space-x-2">
+                    <span>💡 マルチローマ字入力（shi/si, chi/ti, tsu/tu等）対応</span>
+                </div>
+            </div>
+
+            <!-- 2. タイピングゲームプレイ画面 -->
+            <div id="screen-game" class="hidden bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/60 dark:shadow-slate-900/40 border border-slate-200 dark:border-slate-800 animate-pop">
+                <!-- ステータスバー -->
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800 text-sm">
+                    <div class="flex items-center space-x-6">
+                        <div>
+                            <span class="text-slate-500 dark:text-slate-400 text-xs block">進捗</span>
+                            <span id="stat-progress" class="font-bold text-lg font-mono text-slate-900 dark:text-slate-100">1 / 20</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 dark:text-slate-400 text-xs block">タイム</span>
+                            <span id="stat-time" class="font-bold text-lg font-mono text-slate-900 dark:text-slate-100">0.0s</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 dark:text-slate-400 text-xs block">正確率</span>
+                            <span id="stat-accuracy" class="font-bold text-lg font-mono text-slate-900 dark:text-slate-100">100%</span>
+                        </div>
+                    </div>
+                    <button onclick="returnToModeSelect()" class="px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors">
+                        やめる
+                    </button>
+                </div>
+
+                <!-- 出題テキスト表示エリア（日本語 & ローマ字併記） -->
+                <div class="bg-slate-50 dark:bg-slate-950 rounded-2xl p-5 md:p-6 mb-6 text-center border border-slate-200 dark:border-slate-800 relative overflow-hidden shadow-inner">
+                    <!-- 日本語 -->
+                    <div id="display-word" class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3 leading-relaxed break-words max-w-full px-2">
+                        読み込み中...
+                    </div>
+                    <!-- ローマ字 (入力済みカラー＆未入力カラー分け・複数行折り返し対応) -->
+                    <div id="display-kana" class="font-mono text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wide min-h-[48px] flex flex-wrap items-center justify-center leading-relaxed max-w-full px-2">
+                        <span class="text-slate-400 dark:text-slate-600">mizu</span>
+                    </div>
+                    <div id="typing-feedback" class="mt-2 text-xs font-bold text-rose-500 dark:text-rose-400 h-4"></div>
+                </div>
+
+                <!-- QWERTYキーボードガイド -->
+                <div class="bg-slate-900 dark:bg-slate-950 rounded-2xl p-4 md:p-5 shadow-inner mb-6 border border-slate-800">
+                    <div class="text-slate-400 dark:text-slate-300 text-xs font-bold mb-3 flex items-center justify-between">
+                        <span>⌨️ キーボードガイド (次に押すキーが光ります)</span>
+                        <span id="next-key-hint" class="text-indigo-400 dark:text-sky-400 font-mono text-sm px-2.5 py-0.5 bg-slate-800 dark:bg-slate-900 rounded-md border border-slate-700">--</span>
+                    </div>
+                    <div id="virtual-keyboard" class="flex flex-col items-center space-y-1.5 select-none">
+                        <!-- 動的生成 -->
+                    </div>
+                </div>
+
+                <!-- フォーカス保持用隠し入力フィールド -->
+                <input type="text" id="hidden-input" autocomplete="off" autocapitalize="off" spellcheck="false" class="opacity-0 absolute -top-full pointer-events-none">
+
+                <div class="text-center text-xs text-slate-500 dark:text-slate-400">
+                    画面をクリックしてフォーカスし、ローマ字を入力してください
+                </div>
+            </div>
+
+            <!-- 3. 結果発表画面 -->
+            <div id="screen-result" class="hidden bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl shadow-slate-200/60 dark:shadow-slate-900/40 border border-slate-200 dark:border-slate-800 text-center animate-pop">
+                <div class="w-16 h-16 bg-amber-100 dark:bg-amber-950/80 rounded-3xl mx-auto flex items-center justify-center text-3xl mb-4 shadow-md border border-amber-200 dark:border-amber-900">
+                    🏆
+                </div>
+                <h2 class="text-2xl font-bold mb-1 text-slate-900 dark:text-slate-100">お疲れ様でした！</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mb-8">全20問を完走しました！素晴らしい集中力です</p>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-500 dark:text-slate-400 text-xs block mb-1">トータルタイム</span>
+                        <span id="result-time" class="text-2xl font-extrabold font-mono text-slate-900 dark:text-slate-100">0.0s</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-500 dark:text-slate-400 text-xs block mb-1">WPM (打鍵速度)</span>
+                        <span id="result-wpm" class="text-2xl font-extrabold font-mono text-indigo-600 dark:text-indigo-400">0</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-500 dark:text-slate-400 text-xs block mb-1">正解率</span>
+                        <span id="result-accuracy" class="text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400">100%</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-500 dark:text-slate-400 text-xs block mb-1">ミス回数</span>
+                        <span id="result-mistakes" class="text-2xl font-extrabold font-mono text-rose-600 dark:text-rose-400">0回</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                    <button onclick="restartGame()" class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/30 transition-all duration-200">
+                        もう一度挑戦する
+                    </button>
+                    <button onclick="returnToModeSelect()" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm transition-all duration-200">
+                        モード選択へ戻る
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="w-full py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        &copy; 2026 すらすらタイピング道場 All rights reserved.
+    </footer>
+
+    <script>
+        // ローマ字パース木（複数入力対応）
+        const romajiMap = {
+            'あ': ['a'], 'い': ['i', 'yi'], 'う': ['u', 'wu', 'whu'], 'え': ['e'], 'お': ['o'],
+            'か': ['ka', 'ca'], 'き': ['ki'], 'く': ['ku', 'cu', 'qu'], 'け': ['ke'], 'こ': ['ko', 'co'],
+            'さ': ['sa'], 'し': ['shi', 'si', 'ci'], 'す': ['su'], 'せ': ['se', 'ce'], 'そ': ['so'],
+            'た': ['ta'], 'ち': ['chi', 'ti'], 'つ': ['tsu', 'tu'], 'て': ['te'], 'と': ['to'],
+            'な': ['na'], 'に': ['ni'], 'ぬ': ['nu'], 'ね': ['ne'], 'の': ['no'],
+            'は': ['ha'], 'ひ': ['hi'], 'ふ': ['fu', 'hu'], 'へ': ['he'], 'ほ': ['ho'],
+            'ま': ['ma'], 'み': ['mi'], 'む': ['mu'], 'め': ['me'], 'も': ['mo'],
+            'や': ['ya'], 'ゆ': ['yu'], 'よ': ['yo'],
+            'ら': ['ra'], 'り': ['ri'], 'る': ['ru'], 'れ': ['re'], 'ろ': ['ro'],
+            'わ': ['wa'], 'を': ['wo'], 'ん': ['nn', 'n', "n'"],
+            'が': ['ga'], 'ぎ': ['gi'], 'ぐ': ['gu'], 'げ': ['ge'], 'ご': ['go'],
+            'ざ': ['za'], 'じ': ['ji', 'zi'], 'ず': ['zu'], 'ぜ': ['ze'], 'ぞ': ['zo'],
+            'だ': ['da'], 'ぢ': ['di'], 'づ': ['du'], 'で': ['de'], 'ど': ['do'],
+            'ば': ['ba'], 'び': ['bi'], 'ぶ': ['bu'], 'べ': ['be'], 'ぼ': ['bo'],
+            'ぱ': ['pa'], 'ぴ': ['pi'], 'ぷ': ['pu'], 'ぺ': ['pe'], 'ぽ': ['po'],
+            'きゃ': ['kya'], 'きゅ': ['kyu'], 'きょ': ['kyo'],
+            'しゃ': ['sha', 'sya'], 'しゅ': ['shu', 'syu'], 'しょ': ['sho', 'syo'],
+            'ちゃ': ['cha', 'tya', 'cya'], 'ちゅ': ['chu', 'tyu', 'cyu'], 'ちょ': ['cho', 'tyo', 'cyo'],
+            'にゃ': ['nya'], 'にゅ': ['nyu'], 'にょ': ['nyo'],
+            'ひゃ': ['hya'], 'ひゅ': ['hyu'], 'ひょ': ['hyo'],
+            'みゃ': ['mya'], 'みゅ': ['myu'], 'みょ': ['myo'],
+            'りゃ': ['rya'], 'りゅ': ['ryu'], 'りょ': ['ryo'],
+            'ぎゃ': ['gya'], 'ぎゅ': ['gyu'], 'ぎょ': ['gyo'],
+            'じゃ': ['ja', 'jya', 'zya'], 'じゅ': ['ju', 'jyu', 'zyu'], 'じょ': ['jo', 'jyo', 'zyo'],
+            'びゃ': ['bya'], 'びゅ': ['byu'], 'びょ': ['byo'],
+            'ぴゃ': ['pya'], 'ぴゅ': ['pyu'], 'ぴょ': ['pyo'],
+            'うぇ': ['we', 'whe'], 'うぃ': ['wi', 'whi'], 'うぉ': ['wo'],
+            'てぃ': ['thi', 'tei'], 'でぃ': ['dhi', 'dei'],
+            'ぁ': ['la', 'xa'], 'ぃ': ['li', 'xi'], 'ぅ': ['lu', 'xu'], 'ぇ': ['le', 'xe'], 'ぉ': ['lo', 'xo'],
+            'っ': ['ltu', 'xtu', 'ltsu', 'xtsu'],
+            'ー': ['-']
+        };
+
+        const wordDatasets = {
+            easy: [
+                { text: "みず", kana: "みず" },
+                { text: "いぬ", kana: "いぬ" },
+                { text: "ねこ", kana: "ねこ" },
+                { text: "そら", kana: "そら" },
+                { text: "はな", kana: "はな" },
+                { text: "とり", kana: "とり" },
+                { text: "ほし", kana: "ほし" },
+                { text: "つき", kana: "つき" },
+                { text: "あめ", kana: "あめ" },
+                { text: "やま", kana: "やま" },
+                { text: "かわ", kana: "かわ" },
+                { text: "もも", kana: "もも" },
+                { text: "さる", kana: "さる" },
+                { text: "くま", kana: "くま" },
+                { text: "かに", kana: "かに" },
+                { text: "たまご", kana: "たまご" },
+                { text: "くるま", kana: "くるま" },
+                { text: "さくら", kana: "さくら" },
+                { text: "りんご", kana: "りんご" },
+                { text: "バナナ", kana: "ばなな" }
+            ],
+            normal: [
+                { text: "プログラミング", kana: "ぷろぐらみんぐ" },
+                { text: "ひまわり畑", kana: "ひまわりばたけ" },
+                { text: "チョコレート", kana: "ちょこれーと" },
+                { text: "すばらしい朝", kana: "すばらしいあさ" },
+                { text: "パソコン操作", kana: "ぱそこんそうさ" },
+                { text: "美しい景色", kana: "うつくしいけしき" },
+                { text: "おいしいご飯", kana: "おいしいごはん" },
+                { text: "青空と白い雲", kana: "あおぞらとしろいくも" },
+                { text: "図書館で勉強", kana: "としょかんでべんきょう" },
+                { text: "元気な子どもたち", kana: "げんきなこどもたち" },
+                { text: "新しい挑戦", kana: "あたらしいちょうせん" },
+                { text: "音楽を聴く時間", kana: "おんがくをきくじかん" },
+                { text: "美味しいお寿司", kana: "おいしいおすし" },
+                { text: "楽しいお祭り", kana: "たのしいおまつり" },
+                { text: "満天の星空", kana: "まんてんのほしぞら" },
+                { text: "公園で深呼吸", kana: "こうえんでしんこきゅう" },
+                { text: "未来のテクノロジー", kana: "みらいのてくのろじー" },
+                { text: "丁寧な暮らし", kana: "ていねいなくらし" },
+                { text: "温かいお茶", kana: "あたたかいおちゃ" },
+                { text: "笑顔が一番", kana: "えがおがいちばん" }
+            ],
+            hard: [
+                { text: "きゅうな坂道をいっしょうけんめい走る", kana: "きゅうなさかみちをいっしょうけんめいはしる" },
+                { text: "人工知能の技術が急速に発展している未来社会", kana: "じんこうちのうのぎじゅつがきゅうそくにはってんしているみらいしゃかい" },
+                { text: "夕焼け空に赤く染まる静かな港町の美しい風景", kana: "ゆうやけぞらにあかくそまるしずかなみなとまちのうつくしいふうけい" },
+                { text: "プロフェッショナルなエンジニアを目指す挑戦", kana: "ぷろふぇっしょなるなえんじにあをめざすちょうせん" },
+                { text: "自然豊かな環境の中で心身をリフレッシュする休日", kana: "しぜんゆたかなかんきょうのなかでしんしんをりふれっしゅするきゅうじつ" },
+                { text: "世界中で愛される美味しい料理を食べ歩く旅", kana: "せかいじゅうであいされるおいしいりょうりをたべあるくたび" },
+                { text: "最新のガジェットを駆使して効率的に仕事をこなす", kana: "さいしんのがじぇっとをくししてこうりつてきにしごとをこなす" },
+                { text: "毎日の積み重ねが大きな成功を生み出す原動力となる", kana: "まいにちのつみかさねがおおきなせいこうをうみだすげんどうりょくとなる" },
+                { text: "伝統的な文化と現代的なデザインが融合した街並み", kana: "でんとうてきなぶんかとげんだいてきなでざいんがゆうごうしたまちなみ" },
+                { text: "未知なる宇宙の謎を解き明かすための壮大な研究", kana: "みちなるうちゅうのなぞをときあかすためのそうだいなけんきゅう" },
+                { text: "困難に直面したときこそ前向きな姿勢を貫くことが大切", kana: "こんなんにちょくめんしたときこそまえむきなしせいをつらぬくことがたいせつ" },
+                { text: "静寂に包まれた夜中に響き渡る美しいピアノの音色", kana: "せいじゃくにつつまれたよなかにひびきわたるうつくしいぴあののねいろ" },
+                { text: "思いやりを持った行動が周囲の人々を自然と笑顔にする", kana: "おもいやりをもったこうどうがしゅういのひとびとをしぜんとえがおにする" },
+                { text: "スポーツで汗を流したあとに飲む冷たい飲み物の爽快感", kana: "すぽーつであせをながしたあとにのむつめたいのみもののそうかいかん" },
+                { text: "無限の可能性を秘めた子どもたちの未来を応援する", kana: "むげんのかのうせいをひめたこどもたちのみらいをおうえんする" },
+                { text: "健康的な食生活と適度な運動が健康維持の秘訣である", kana: "けんこうてきなしょくせいかつとてきどなうんどうがけんこういじのひけつである" },
+                { text: "歴史ある建造物が立ち並ぶヨーロッパの古い街並み", kana: "れきしあるけんぞうぶつがたちならぶよーろっぱのふるいまちなみ" },
+                { text: "新しいアイデアを次々に生み出すクリエイティブな空間", kana: "あたらしいあいであをつぎつぎにうみだすくりえいてぃぶなくうかん" },
+                { text: "澄み切った空気の中で深呼吸をすると心がとても落ち着く", kana: "すみきったくうきのなかでしんこきゅうをするとこころがとてもおちつく" },
+                { text: "素晴らしい仲間たちと共に作り上げる最高の思い出", kana: "すばらしいなかまたちとともにつくりあげるさいこうのおもいで" }
+            ]
+        };
+
+        const keyboardRows = [
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^'],
+            ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '@', '['],
+            ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', ':', ']'],
+            ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', '_']
+        ];
+
+        let currentMode = 'easy';
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let currentWord = null;
+        let currentNodes = [];
+        let typedRomaji = '';
+        
+        let startTime = null;
+        let timerInterval = null;
+        let totalStrokes = 0;
+        let correctStrokes = 0;
+        let mistakes = 0;
+        let isPlaying = false;
+        let isDarkMode = false;
+
+        const screenMode = document.getElementById('screen-mode');
+        const screenGame = document.getElementById('screen-game');
+        const screenResult = document.getElementById('screen-result');
+        const currentModeLabel = document.getElementById('current-mode-label');
+        
+        const displayWord = document.getElementById('display-word');
+        const displayKana = document.getElementById('display-kana');
+        const hiddenInput = document.getElementById('hidden-input');
+        const nextKeyHint = document.getElementById('next-key-hint');
+        const virtualKeyboard = document.getElementById('virtual-keyboard');
+        
+        const statProgress = document.getElementById('stat-progress');
+        const statTime = document.getElementById('stat-time');
+        const statAccuracy = document.getElementById('stat-accuracy');
+
+        const resultTime = document.getElementById('result-time');
+        const resultWpm = document.getElementById('result-wpm');
+        const resultAccuracy = document.getElementById('result-accuracy');
+        const resultMistakes = document.getElementById('result-mistakes');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('surasura_theme');
+            if (savedTheme === 'dark') {
+                isDarkMode = true;
+                document.getElementById('app-body').classList.add('dark');
+                document.getElementById('theme-icon').textContent = '☀️';
+            }
+            buildVirtualKeyboard();
+        });
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const body = document.getElementById('app-body');
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (isDarkMode) {
+                body.classList.add('dark');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('surasura_theme', 'dark');
+            } else {
+                body.classList.remove('dark');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('surasura_theme', 'light');
+            }
+            updateKeyboardHighlight();
+        }
+
+        function buildVirtualKeyboard() {
+            virtualKeyboard.innerHTML = '';
+            keyboardRows.forEach((row, rIdx) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'flex space-x-1 justify-center';
+                if(rIdx === 1) rowDiv.style.paddingLeft = '12px';
+                if(rIdx === 2) rowDiv.style.paddingLeft = '24px';
+                if(rIdx === 3) rowDiv.style.paddingLeft = '36px';
+
+                row.forEach(key => {
+                    const keyBtn = document.createElement('div');
+                    keyBtn.id = `key-${key}`;
+                    keyBtn.className = 'w-7 h-8 md:w-9 md:h-9 bg-slate-800 text-slate-300 rounded-lg flex items-center justify-center font-mono text-xs md:text-sm font-bold uppercase transition-all shadow-sm border border-slate-700';
+                    keyBtn.textContent = key;
+                    rowDiv.appendChild(keyBtn);
+                });
+                virtualKeyboard.appendChild(rowDiv);
+            });
+
+            const spaceRow = document.createElement('div');
+            spaceRow.className = 'flex space-x-1 justify-center pt-1';
+            const spaceKey = document.createElement('div');
+            spaceKey.id = 'key- ';
+            spaceKey.className = 'w-48 h-7 md:w-64 md:h-8 bg-slate-800 text-slate-400 rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-all shadow-sm border border-slate-700';
+            spaceKey.textContent = 'SPACE';
+            spaceRow.appendChild(spaceKey);
+            virtualKeyboard.appendChild(spaceRow);
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+            const labels = { easy: 'かんたん', normal: 'ふつう', hard: 'むずかしい' };
+            currentModeLabel.textContent = labels[mode] || 'かんたん';
+            startGame();
+        }
+
+        function startGame() {
+            const pool = [...wordDatasets[currentMode]];
+            // シャッフルして20問抽出
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            currentQuestions = pool.slice(0, 20);
+            currentIndex = 0;
+            totalStrokes = 0;
+            correctStrokes = 0;
+            mistakes = 0;
+            isPlaying = true;
+            startTime = Date.now();
+
+            statTime.textContent = '0.0s';
+            statAccuracy.textContent = '100%';
+            document.getElementById('typing-feedback').textContent = '';
+
+            screenMode.classList.add('hidden');
+            screenResult.classList.add('hidden');
+            screenGame.classList.remove('hidden');
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 100);
+
+            loadNextQuestion();
+            setTimeout(() => hiddenInput.focus(), 50);
+        }
+
+        function parseToRomaNodes(kanaText) {
+            let i = 0;
+            let kanaChars = [];
+            while (i < kanaText.length) {
+                if (i + 2 < kanaText.length) {
+                    let sub3 = kanaText.substr(i, 3);
+                    if (romajiMap[sub3]) {
+                        kanaChars.push({ kana: sub3, patterns: [...romajiMap[sub3]] });
+                        i += 3;
+                        continue;
+                    }
+                }
+                if (i + 1 < kanaText.length) {
+                    let sub2 = kanaText.substr(i, 2);
+                    if (romajiMap[sub2]) {
+                        kanaChars.push({ kana: sub2, patterns: [...romajiMap[sub2]] });
+                        i += 2;
+                        continue;
+                    }
+                }
+                let sub1 = kanaText[i];
+                if (sub1 === 'っ' && i + 1 < kanaText.length) {
+                    let nextKana = kanaText.substr(i + 1, 2);
+                    if (!romajiMap[nextKana]) nextKana = kanaText[i + 1];
+                    let nextPatterns = romajiMap[nextKana] || [''];
+                    let tsuPatterns = ['ltu', 'xtu', 'ltsu', 'xtsu'];
+                    nextPatterns.forEach(p => {
+                        if (p.length > 0 && !'aiueon'.includes(p[0])) {
+                            tsuPatterns.unshift(p[0]);
+                        }
+                    });
+                    kanaChars.push({ kana: 'っ', patterns: [...new Set(tsuPatterns)] });
+                    i += 1;
+                    continue;
+                }
+
+                if (sub1 === 'ん') {
+                    let nextChar = i + 1 < kanaText.length ? kanaText[i + 1] : '';
+                    let nextPatterns = romajiMap[nextChar] || [];
+                    let needsDoubleN = nextChar === '' || nextPatterns.some(p => 'aiueony'.includes(p[0]));
+                    let nPatterns = needsDoubleN ? ['nn', "n'"] : ['n', 'nn', "n'"];
+                    kanaChars.push({ kana: 'ん', patterns: nPatterns });
+                    i += 1;
+                    continue;
+                }
+
+                if (romajiMap[sub1]) {
+                    kanaChars.push({ kana: sub1, patterns: [...romajiMap[sub1]] });
+                } else {
+                    kanaChars.push({ kana: sub1, patterns: [sub1] });
+                }
+                i += 1;
+            }
+            return kanaChars;
+        }
+
+        function loadNextQuestion() {
+            if (currentIndex >= currentQuestions.length) {
+                endGame();
+                return;
+            }
+            currentWord = currentQuestions[currentIndex];
+            currentNodes = parseToRomaNodes(currentWord.kana);
+            typedRomaji = '';
+            
+            updateDisplay();
+            updateKeyboardHighlight();
+            statProgress.textContent = `${currentIndex + 1} / 20`;
+        }
+
+        function focusInput() {
+            hiddenInput.focus();
+        }
+
+        document.addEventListener('click', () => {
+            if (isPlaying) {
+                hiddenInput.focus();
+            }
+        });
+
+        function updateDisplay() {
+            if (!currentWord) return;
+            displayWord.textContent = currentWord.text;
+
+            // 残りのノードから標準または現在選択中のパターンを組み立てて表示
+            const remainingRomaji = currentNodes.map(node => node.patterns[0]).join('');
+            
+            // 入力済みと未入力を1文字ずつスパン化して自然な折り返し（flex-wrap）に対応
+            let html = '';
+            for (const ch of typedRomaji) {
+                html += `<span class="text-indigo-600 dark:text-sky-400">${ch}</span>`;
+            }
+            for (const ch of remainingRomaji) {
+                html += `<span class="text-slate-400 dark:text-slate-500">${ch}</span>`;
+            }
+            displayKana.innerHTML = html;
+        }
+
+        function updateKeyboardHighlight() {
+            document.querySelectorAll('[id^="key-"]').forEach(el => {
+                el.classList.remove('key-highlight-light', 'key-highlight-dark', 'bg-indigo-600', 'bg-sky-400', 'text-white', 'text-slate-900', 'border-indigo-400', 'border-sky-300');
+                el.classList.add('bg-slate-800', 'text-slate-300', 'border-slate-700');
+            });
+
+            if (!currentNodes || currentNodes.length === 0) return;
+
+            const currentNode = currentNodes[0];
+            const nextChars = new Set();
+            currentNode.patterns.forEach(p => {
+                if (p.length > 0) {
+                    nextChars.add(p[0].toLowerCase());
+                }
+            });
+
+            if (nextChars.size > 0) {
+                nextKeyHint.textContent = Array.from(nextChars).join(', ').toUpperCase();
+                nextChars.forEach(char => {
+                    const targetEl = document.getElementById(`key-${char}`);
+                    if (targetEl) {
+                        targetEl.classList.remove('bg-slate-800', 'text-slate-300', 'border-slate-700');
+                        if (isDarkMode) {
+                            targetEl.classList.add('key-highlight-dark');
+                        } else {
+                            targetEl.classList.add('key-highlight-light');
+                        }
+                    }
+                });
+            } else {
+                nextKeyHint.textContent = '-';
+            }
+        }
+
+        hiddenInput.addEventListener('input', (e) => {
+            if (!isPlaying || !currentNodes || currentNodes.length === 0) return;
+            
+            const val = hiddenInput.value;
+            hiddenInput.value = '';
+
+            if (val.length === 0) return;
+            const char = val.slice(-1).toLowerCase();
+
+            totalStrokes++;
+
+            let matched = false;
+            let nextNodes = [...currentNodes];
+            let topNode = nextNodes[0];
+
+            let validPatternsAfterMatch = [];
+            topNode.patterns.forEach(pattern => {
+                if (pattern.startsWith(char)) {
+                    matched = true;
+                    if (pattern.length > 1) {
+                        validPatternsAfterMatch.push(pattern.slice(1));
+                    }
+                }
+            });
+
+            if (matched) {
+                correctStrokes++;
+                typedRomaji += char;
+                let updatedPatterns = [];
+                topNode.patterns.forEach(pattern => {
+                    if (pattern.startsWith(char) && pattern.length > 1) {
+                        updatedPatterns.push(pattern.slice(1));
+                    }
+                });
+
+                if (updatedPatterns.length > 0) {
+                    topNode.patterns = updatedPatterns;
+                } else {
+                    nextNodes.shift();
+                }
+
+                currentNodes = nextNodes;
+                updateDisplay();
+                updateKeyboardHighlight();
+
+                if (currentNodes.length === 0) {
+                    currentIndex++;
+                    loadNextQuestion();
+                }
+            } else {
+                mistakes++;
+                document.getElementById('typing-feedback').textContent = "おっと！違うキーです";
+                setTimeout(() => {
+                    document.getElementById('typing-feedback').textContent = "";
+                }, 400);
+            }
+
+            updateAccuracy();
+        });
+
+        function updateTimer() {
+            if (!startTime) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            statTime.textContent = elapsed.toFixed(1) + 's';
+        }
+
+        function updateAccuracy() {
+            if (totalStrokes === 0) {
+                statAccuracy.textContent = '100%';
+                return;
+            }
+            const acc = Math.round((correctStrokes / totalStrokes) * 100);
+            statAccuracy.textContent = acc + '%';
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearInterval(timerInterval);
+
+            const totalTime = (Date.now() - startTime) / 1000;
+            const acc = totalStrokes > 0 ? Math.round((correctStrokes / totalStrokes) * 100) : 100;
+            const wpm = totalTime > 0 ? Math.round((correctStrokes / (totalTime / 60)) / 5) : 0;
+
+            resultTime.textContent = totalTime.toFixed(1) + 's';
+            resultWpm.textContent = wpm;
+            resultAccuracy.textContent = acc + '%';
+            resultMistakes.textContent = mistakes + '回';
+
+            screenGame.classList.add('hidden');
+            screenResult.classList.remove('hidden');
+        }
+
+        function returnToModeSelect() {
+            isPlaying = false;
+            if (timerInterval) clearInterval(timerInterval);
+            screenGame.classList.add('hidden');
+            screenResult.classList.add('hidden');
+            screenMode.classList.remove('hidden');
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        window.selectMode = selectMode;
+        window.toggleTheme = toggleTheme;
+        window.restartGame = restartGame;
+        window.returnToModeSelect = returnToModeSelect;
+    </script>
+</body>
+</html>
